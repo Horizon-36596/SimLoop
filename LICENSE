@@ -1,34 +1,3 @@
-SimLoop — a season-agnostic simulation and AI-iteration library for FIRST Tech Challenge.
-Copyright (C) 2026 Horizon (FTC 36596)
-
-This program is free software: you can redistribute it and/or modify it under
-the terms of the GNU Affero General Public License as published by the Free
-Software Foundation, either version 3 of the License, or (at your option) any
-later version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License along
-with this program. If not, see <https://www.gnu.org/licenses/>.
-
---------------------------------------------------------------------------------
-
-WHAT THIS COVERS, AND WHAT IT DOES NOT
-
-This licence covers SimLoop: the code in this directory that is Horizon's own
-work.
-
-It does not cover third-party code this project depends on, or that is vendored
-beside it in the repository this module grew up in. The FIRST Tech Challenge SDK
-and SolversLib are distributed under their own BSD licences and remain under
-them; PsiKit and Pedro Pathing likewise remain under theirs. Nothing here
-revokes, narrows or replaces any of those, and where a file carries someone
-else's copyright header, that header governs that file.
-
---------------------------------------------------------------------------------
-
                     GNU AFFERO GENERAL PUBLIC LICENSE
                        Version 3, 19 November 2007
 

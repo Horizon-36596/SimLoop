@@ -177,7 +177,8 @@ Releasing: `PUBLISHING.md`. Conventions for changing this subtree: `CLAUDE.md`.
 
 ## Licence
 
-**AGPL-3.0-or-later** — `LICENSE` in this directory.
+**AGPL-3.0-or-later** — `LICENSE` in this directory is the licence text, `NOTICE.md` beside it is the
+copyright and what it covers.
 
 In practice, for an FTC team: **use it, change it, run it, with no obligation at all** — the copyleft
 term is triggered by *distributing*, not by using. If you publish your robot code, or hand a build of it

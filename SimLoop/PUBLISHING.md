@@ -119,7 +119,8 @@ correct, and they are meant to stay:
   of the artifact under anyone already depending on it.
 
 The root of the repository holds what belongs to the repository rather than to the library:
-`settings.gradle`, `build.gradle`, `gradlew` and the wrapper, `jitpack.yml`, `LICENSE`, `README.md` and
+`settings.gradle`, `build.gradle`, `gradlew` and the wrapper, `jitpack.yml`, `LICENSE`, `NOTICE.md`,
+`README.md` and
 `.github/workflows/`. Everything else is under `SimLoop/` and travels with the module.
 
 ## What consumers have to add that a POM cannot tell them

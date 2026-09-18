@@ -61,7 +61,8 @@ can quietly become something that only builds on one laptop.
 
 ## Licence
 
-**AGPL-3.0-or-later** — [`LICENSE`](LICENSE), copyright Horizon (FTC 36596).
+**AGPL-3.0-or-later** — [`LICENSE`](LICENSE) is the licence text, [`NOTICE.md`](NOTICE.md) is the
+copyright and what it covers. Copyright (C) 2026 Horizon (FTC 36596).
 
 For an FTC team, in practice: **use it, change it, run it, with no obligation at all.** The copyleft term
 is triggered by *distributing*, not by using, so a private season repository owes nothing. If you publish
@@ -69,5 +70,5 @@ your robot code, or hand a build of it to anyone outside your team, then what yo
 AGPL-3.0 as well and its source has to be available.
 
 The dependencies keep their own licences — the FIRST Tech Challenge SDK and SolversLib are BSD, PsiKit
-and Pedro Pathing carry theirs. This licence covers SimLoop's own code and nothing else. The detail is in
-the preamble of `LICENSE`.
+and Pedro Pathing carry theirs. This licence covers SimLoop's own code and nothing else, which is what
+[`NOTICE.md`](NOTICE.md) states exactly.
