@@ -153,7 +153,7 @@ the same JVM starts clean.
 ./gradlew :SimLoop:testDebugUnitTest
 ```
 
-358 JVM tests, no device and no emulator. They live in `src/test/` and travel with the module.
+359 JVM tests, no device and no emulator. They live in `src/test/` and travel with the module.
 
 Every command below is run from the repository root, not from this directory. The `SimLoop/` path prefix
 and the `:SimLoop` task prefix are correct in every checkout of it: SimLoop is always a Gradle subproject

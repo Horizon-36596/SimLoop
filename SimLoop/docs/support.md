@@ -41,4 +41,5 @@ Run the tests before you propose anything:
 ./gradlew :SimLoop:testDebugUnitTest
 ```
 
-(Drop the `:SimLoop` prefix if you are in a checkout where SimLoop is the root project.)
+(Run it from the repository root. The `:SimLoop` prefix is always correct: the library is a Gradle
+subproject and never the root project.)

@@ -49,7 +49,7 @@ From the repository root:
 ./gradlew :SimLoop:testDebugUnitTest
 ```
 
-358 JVM tests, no device and no emulator. The documentation site and the API reference:
+359 JVM tests, no device and no emulator. The documentation site and the API reference:
 
 ```bash
 pip install -r SimLoop/docs-requirements.txt
