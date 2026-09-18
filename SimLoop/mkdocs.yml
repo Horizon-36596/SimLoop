@@ -39,26 +39,47 @@ copyright: "SimLoop 0.1.0-beta1 · Horizon (FTC 36596) · AGPL-3.0-or-later"
 
 theme:
   name: material
+
+  # The team's mark, taken from the Horizon website's app/icon.svg so the two cannot
+  # drift apart. It is a circle drawn on its own ground, which is why the stylesheet
+  # crops it round in the header rather than showing a square behind the ring.
+  logo: assets/horizon-mark.svg
+  favicon: assets/horizon-mark.svg
+
   features:
     - navigation.sections
     - navigation.top
+    - navigation.tracking
+    - navigation.indexes
     - content.code.copy
+    - content.tabs.link
     - toc.follow
+    - search.suggest
+    - search.highlight
+
+  # Jost and JetBrains Mono are two of the Horizon website's three faces, and
+  # Material fetches both from Google Fonts. The third, Newsreader, is the narrative
+  # serif and is imported by stylesheets/horizon.css - Material has only these two
+  # slots.
+  font:
+    text: Jost
+    code: JetBrains Mono
+
+  # ONE palette, dark, with no toggle. The main site declares `color-scheme: dark`
+  # and ships no light mode; a docs site that offered one would be inventing a
+  # second brand nobody has designed.
+  #
+  # It is `slate`, Material own dark scheme, re-tinted by stylesheets/horizon.css
+  # rather than a custom scheme name. That choice is deliberate and was made after
+  # trying the other one: a scheme name Material does not know inherits the LIGHT
+  # defaults for every variable the stylesheet does not happen to set, and the first
+  # casualty was black admonition text on the night ground. Building on slate means
+  # a variable nobody re-tinted is still a dark one.
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/weather-night
-        name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/weather-sunny
-        name: Switch to light mode
+    - scheme: slate
+
+extra_css:
+  - stylesheets/horizon.css
 
 markdown_extensions:
   - admonition

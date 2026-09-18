@@ -1,0 +1,622 @@
+/* Newsreader is the narrative serif. Material loads only two Google families of
+   its own (theme.font.text and theme.font.code), so the third is imported here.
+   An @import has to be the first rule in the file, which is why it sits above
+   the header comment that explains everything else. */
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap');
+
+/* ===========================================================================
+   SimLoop documentation — Horizon (FTC 36596) theme.
+
+   This is a skin over MkDocs Material, not a fork of it. Every rule below sets
+   one of Material's own custom properties or restyles one of its components;
+   nothing here reimplements navigation, search or the table of contents, so a
+   Material upgrade cannot silently take the site apart.
+
+   The tokens are the team's, copied from the Horizon website's Tailwind
+   config so the two sites cannot drift:
+
+     ground     night-950  #17061d      the official brand ground
+     surfaces   night-925 .. night-600  cards, code, hairlines
+     text       haze-50 .. haze-500     haze-300 is the body-copy floor
+     sunrise    amber #ffcb5c  ->  orange #f86a43  ->  crimson #b13848
+
+   Both neutral ramps are tinted toward the brand's violet deliberately. A cool
+   gray beside this palette reads as a stock template, which is the one thing
+   the site is not allowed to look like.
+
+   Dark only, like the main site: `color-scheme: dark` is declared and no light
+   palette is offered, so there is no theme toggle to keep in sync.
+   =========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* --- the sunrise ------------------------------------------------------ */
+  --horizon-amber: #ffcb5c;
+  --horizon-orange: #f86a43;
+  --horizon-crimson: #b13848;
+
+  /* --- surfaces, darkest first ------------------------------------------ */
+  --horizon-night-950: #17061d;
+  --horizon-night-925: #1c0a24;
+  --horizon-night-900: #22102b;
+  --horizon-night-850: #2a1735;
+  --horizon-night-800: #331e3f;
+  --horizon-night-700: #42294f;
+  --horizon-night-600: #563863;
+
+  /* --- text and hairlines ----------------------------------------------- */
+  --horizon-haze-50: #faf6fb;
+  --horizon-haze-100: #f0e8f2;
+  --horizon-haze-200: #dccfe0;
+  --horizon-haze-300: #c2b0c8;
+  --horizon-haze-400: #a08fa8;
+  --horizon-haze-500: #93849b;
+  --horizon-haze-600: #665572;
+
+  --horizon-measure: 74ch;
+  --horizon-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Material keys almost everything off this handful of variables. Setting them
+   here is what makes the whole site change colour, rather than a long list of
+   per-component overrides further down.
+   
+   The selector is Material own `slate`, not a scheme name of our own. A custom
+   name inherits the LIGHT defaults for every variable not set below, which is a
+   trap with a long tail: the first thing it produced was black admonition body
+   text on the night ground, and anything else left unset would have failed the
+   same way, quietly. Re-tinting slate means an unset variable is still dark. */
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color: var(--horizon-night-950);
+  --md-default-bg-color--light: var(--horizon-night-900);
+  --md-default-bg-color--lighter: var(--horizon-night-850);
+  --md-default-bg-color--lightest: var(--horizon-night-800);
+
+  --md-default-fg-color: var(--horizon-haze-200);
+  --md-default-fg-color--light: var(--horizon-haze-300);
+  --md-default-fg-color--lighter: var(--horizon-haze-500);
+  --md-default-fg-color--lightest: var(--horizon-haze-600);
+
+  --md-primary-fg-color: var(--horizon-night-950);
+  --md-primary-fg-color--light: var(--horizon-night-900);
+  --md-primary-fg-color--dark: var(--horizon-night-950);
+  --md-primary-bg-color: var(--horizon-haze-50);
+  --md-primary-bg-color--light: var(--horizon-haze-300);
+
+  --md-accent-fg-color: var(--horizon-amber);
+  --md-accent-fg-color--transparent: rgba(255, 203, 92, 0.1);
+  --md-accent-bg-color: var(--horizon-night-950);
+
+  --md-typeset-color: var(--horizon-haze-300);
+  --md-typeset-a-color: var(--horizon-orange);
+  --md-typeset-mark-color: rgba(255, 203, 92, 0.28);
+  --md-typeset-del-color: rgba(177, 56, 72, 0.35);
+  --md-typeset-ins-color: rgba(255, 203, 92, 0.22);
+
+  /* Set explicitly because Material derives these from the scheme rather than
+     from --md-default-*, so re-tinting the surfaces alone does not reach them. */
+  --md-admonition-fg-color: var(--horizon-haze-300);
+  --md-admonition-bg-color: var(--horizon-night-925);
+
+  --md-code-bg-color: var(--horizon-night-925);
+  --md-code-fg-color: var(--horizon-haze-200);
+  --md-code-hl-color: rgba(255, 203, 92, 0.16);
+
+  --md-footer-bg-color: var(--horizon-night-925);
+  --md-footer-bg-color--dark: var(--horizon-night-950);
+  --md-footer-fg-color: var(--horizon-haze-200);
+  --md-footer-fg-color--light: var(--horizon-haze-500);
+  --md-footer-fg-color--lighter: var(--horizon-haze-600);
+
+  --md-shadow-z1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --md-shadow-z2: 0 4px 16px rgba(0, 0, 0, 0.55);
+  --md-shadow-z3: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   Type. Jost for everything structural, Newsreader for narrative paragraphs,
+   JetBrains Mono for anything that is a figure or a symbol. Same three faces
+   as the main site, same reasoning: the wordmark and the sun are geometric, so
+   the headings are too.
+   -------------------------------------------------------------------------- */
+
+body,
+input,
+.md-typeset {
+  font-family: 'Jost', ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+}
+
+code,
+kbd,
+pre,
+.md-typeset code,
+.md-typeset pre {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-feature-settings: 'kern' 1, 'liga' 0;
+}
+
+/* Narrative paragraphs only. Lists, tables, admonition bodies and anything
+   inside a code block stay in the display face, because a serif set at that
+   size in a dense technical list is harder to scan, not easier. */
+.md-typeset > p {
+  font-family: 'Newsreader', ui-serif, Georgia, serif;
+  font-size: 1.02rem;
+  line-height: 1.75;
+  color: var(--horizon-haze-300);
+  text-wrap: pretty;
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4,
+.md-typeset h5 {
+  font-family: 'Jost', ui-sans-serif, system-ui, sans-serif;
+  color: var(--horizon-haze-50);
+  text-wrap: balance;
+}
+
+.md-typeset h1 {
+  font-weight: 500;
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.35em;
+}
+
+/* The one piece of brand on every page: a short sunrise rule under the title.
+   It is 3px and 4rem wide on purpose — enough to read as deliberate, not
+   enough to become a decoration the reader has to look past. */
+.md-typeset h1::after {
+  content: '';
+  display: block;
+  width: 4rem;
+  height: 3px;
+  margin-top: 0.75rem;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--horizon-amber) 0%,
+    var(--horizon-orange) 55%,
+    var(--horizon-crimson) 100%
+  );
+}
+
+.md-typeset h2 {
+  font-weight: 500;
+  font-size: 1.6rem;
+  letter-spacing: -0.015em;
+  margin-top: 2.4em;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--horizon-night-800);
+}
+
+.md-typeset h3 {
+  font-weight: 500;
+  font-size: 1.22rem;
+  letter-spacing: -0.01em;
+  margin-top: 1.9em;
+}
+
+.md-typeset h4 {
+  font-weight: 500;
+  font-size: 1.02rem;
+  color: var(--horizon-haze-100);
+}
+
+/* Any run of figures lines up in a column, exactly as on the main site. */
+.md-typeset table th,
+.md-typeset table td,
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: rgba(177, 56, 72, 0.4);
+  color: var(--horizon-haze-50);
+}
+
+/* --------------------------------------------------------------------------
+   Chrome: header, tabs, sidebars.
+   -------------------------------------------------------------------------- */
+
+.md-header {
+  background: rgba(23, 6, 29, 0.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--horizon-night-800);
+  box-shadow: none;
+}
+
+.md-header__title {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* The brand mark is a circle in the artwork; anything but a round crop of it
+   shows the ground it was drawn on as a square behind the ring. */
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+}
+
+.md-tabs {
+  background: transparent;
+  border-bottom: 1px solid var(--horizon-night-800);
+}
+
+.md-tabs__link {
+  opacity: 1;
+  color: var(--horizon-haze-500);
+  font-weight: 400;
+}
+
+.md-tabs__link:hover,
+.md-tabs__link--active {
+  color: var(--horizon-haze-50);
+}
+
+.md-nav {
+  font-size: 0.72rem;
+}
+
+.md-nav__title {
+  color: var(--horizon-haze-500);
+  font-weight: 500;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.md-nav__link {
+  color: var(--horizon-haze-400);
+  transition: color 0.2s var(--horizon-ease);
+}
+
+.md-nav__link:hover,
+.md-nav__link:focus {
+  color: var(--horizon-haze-50);
+}
+
+/* The active page reads as active from the left margin, so the eye finds it
+   without having to compare text colours across a long list. */
+.md-nav__link--active,
+.md-nav__item .md-nav__link--active {
+  color: var(--horizon-amber);
+  font-weight: 500;
+}
+
+.md-sidebar--secondary .md-nav__link--active {
+  border-left: 2px solid var(--horizon-orange);
+  margin-left: -2px;
+  padding-left: 0.6rem;
+}
+
+/* --------------------------------------------------------------------------
+   Prose furniture: links, rules, tables, code, admonitions.
+   -------------------------------------------------------------------------- */
+
+.md-typeset a {
+  color: var(--horizon-orange);
+  text-decoration-color: rgba(248, 106, 67, 0.35);
+  text-underline-offset: 0.18em;
+  transition: color 0.2s var(--horizon-ease);
+}
+
+.md-typeset a:hover {
+  color: var(--horizon-amber);
+  text-decoration-color: currentColor;
+}
+
+.md-typeset hr {
+  border-bottom: 1px solid var(--horizon-night-800);
+}
+
+.md-typeset table:not([class]) {
+  border: 1px solid var(--horizon-night-800);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: none;
+  font-size: 0.76rem;
+}
+
+.md-typeset table:not([class]) th {
+  background: var(--horizon-night-900);
+  color: var(--horizon-haze-100);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.md-typeset table:not([class]) td {
+  border-top: 1px solid var(--horizon-night-850);
+}
+
+.md-typeset table:not([class]) tr:hover td {
+  background: rgba(42, 23, 53, 0.5);
+}
+
+.md-typeset code {
+  background: var(--horizon-night-900);
+  color: var(--horizon-haze-100);
+  border: 1px solid var(--horizon-night-800);
+  border-radius: 4px;
+  padding: 0.1em 0.38em;
+  font-size: 0.86em;
+}
+
+.md-typeset pre > code {
+  border: none;
+  border-radius: 0;
+  padding: 0.8rem 1.05rem;
+}
+
+.md-typeset .highlight,
+.md-typeset pre {
+  border-radius: 14px;
+  border: 1px solid var(--horizon-night-800);
+  overflow: hidden;
+}
+
+.md-typeset .highlighttable .linenos {
+  background: var(--horizon-night-925);
+  color: var(--horizon-haze-600);
+}
+
+.md-clipboard {
+  color: var(--horizon-haze-600);
+}
+
+.md-clipboard:hover {
+  color: var(--horizon-amber);
+}
+
+/* Admonitions. Material ships a colour per type; these are re-tinted so the
+   page never shows a blue or a green that exists nowhere else in the brand.
+   The type is still distinguishable — amber advises, crimson warns — and the
+   title carries the word, so colour is not the only signal. */
+.md-typeset .admonition,
+.md-typeset details {
+  border: 1px solid var(--horizon-night-800);
+  border-left: 3px solid var(--horizon-night-600);
+  border-radius: 14px;
+  background: var(--horizon-night-925);
+  box-shadow: none;
+  font-size: 0.78rem;
+}
+
+.md-typeset .admonition > p,
+.md-typeset details > p {
+  font-family: 'Jost', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.68;
+}
+
+.md-typeset .admonition-title,
+.md-typeset summary {
+  background: transparent;
+  color: var(--horizon-haze-100);
+  font-weight: 500;
+  letter-spacing: 0.005em;
+}
+
+.md-typeset .admonition-title::before,
+.md-typeset summary::before {
+  background-color: var(--horizon-haze-400);
+}
+
+.md-typeset .note,
+.md-typeset .info,
+.md-typeset .tip {
+  border-left-color: var(--horizon-amber);
+}
+
+.md-typeset .note > .admonition-title::before,
+.md-typeset .info > .admonition-title::before,
+.md-typeset .tip > .admonition-title::before {
+  background-color: var(--horizon-amber);
+}
+
+.md-typeset .warning,
+.md-typeset .caution {
+  border-left-color: var(--horizon-orange);
+}
+
+.md-typeset .warning > .admonition-title::before,
+.md-typeset .caution > .admonition-title::before {
+  background-color: var(--horizon-orange);
+}
+
+.md-typeset .danger,
+.md-typeset .failure,
+.md-typeset .bug {
+  border-left-color: var(--horizon-crimson);
+  background: rgba(177, 56, 72, 0.08);
+}
+
+.md-typeset .danger > .admonition-title::before,
+.md-typeset .failure > .admonition-title::before,
+.md-typeset .bug > .admonition-title::before {
+  background-color: var(--horizon-crimson);
+}
+
+.md-typeset blockquote {
+  border-left: 2px solid var(--horizon-night-700);
+  color: var(--horizon-haze-400);
+}
+
+/* --------------------------------------------------------------------------
+   Search and footer.
+   -------------------------------------------------------------------------- */
+
+.md-search__form {
+  background: var(--horizon-night-900);
+  border: 1px solid var(--horizon-night-800);
+  border-radius: 8px;
+}
+
+.md-search__form:hover {
+  background: var(--horizon-night-850);
+}
+
+.md-search__input::placeholder {
+  color: var(--horizon-haze-600);
+}
+
+[data-md-toggle="search"]:checked ~ .md-header .md-search__form {
+  border-color: var(--horizon-night-700);
+}
+
+.md-search-result__meta,
+.md-search-result__article {
+  background: var(--horizon-night-950);
+}
+
+.md-search-result mark {
+  color: var(--horizon-amber);
+}
+
+.md-footer {
+  border-top: 1px solid var(--horizon-night-800);
+}
+
+.md-footer-meta {
+  background: var(--horizon-night-950);
+}
+
+.md-footer-meta__inner {
+  font-size: 0.68rem;
+}
+
+.md-copyright,
+.md-copyright__highlight {
+  color: var(--horizon-haze-500);
+}
+
+/* Material's own credit line. Kept — the theme's licence asks for it — but
+   set at the weight of a footnote rather than of a sentence. */
+.md-footer-meta .md-social,
+.md-footer-custom {
+  color: var(--horizon-haze-600);
+}
+
+/* --------------------------------------------------------------------------
+   Reading measure. Material's default content column is wide enough that a
+   long paragraph loses the reader between lines; 74ch is the same measure the
+   main site uses for narrative text.
+   -------------------------------------------------------------------------- */
+
+.md-content__inner {
+  max-width: var(--horizon-measure);
+  margin-left: auto;
+  margin-right: auto;
+  padding-bottom: 3rem;
+}
+
+/* A table, a code block or a diagram is allowed the full width — those are
+   scanned in two dimensions, so a narrow column makes them worse. */
+.md-content__inner .md-typeset table:not([class]),
+.md-content__inner .md-typeset .highlight,
+.md-content__inner .md-typeset pre {
+  max-width: none;
+}
+
+@media screen and (max-width: 76.1875em) {
+  .md-content__inner {
+    max-width: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   The home page's opening line. `.md-typeset .hero` is applied with attr_list
+   in index.md, so it is opt-in and no other page picks it up by accident.
+   -------------------------------------------------------------------------- */
+
+.md-typeset .hero {
+  font-family: 'Jost', ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+  font-weight: 300;
+  line-height: 1.45;
+  letter-spacing: -0.015em;
+  color: var(--horizon-haze-100);
+  margin-bottom: 1.6rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   Admonition title bars.
+
+   Material tints each type strip with a colour of its own - its warning is
+   #FF9100, an orange that exists nowhere in this palette and reads as a
+   different brand sitting inside the page. These rules are written at the same
+   specificity Material uses for the strip, which is why they are here rather
+   than folded into the block above: a single .admonition-title rule loses to
+   Material per-type selector and the tint survives.
+
+   Three tints, from the three official stops. Advice is amber, a caution is
+   orange, a real hazard is crimson - and the title always carries the word, so
+   the colour is reinforcement rather than the only signal.
+   -------------------------------------------------------------------------- */
+
+.md-typeset .note > .admonition-title,
+.md-typeset .note > summary,
+.md-typeset .info > .admonition-title,
+.md-typeset .info > summary,
+.md-typeset .tip > .admonition-title,
+.md-typeset .tip > summary,
+.md-typeset .abstract > .admonition-title,
+.md-typeset .abstract > summary,
+.md-typeset .question > .admonition-title,
+.md-typeset .question > summary,
+.md-typeset .success > .admonition-title,
+.md-typeset .success > summary,
+.md-typeset .example > .admonition-title,
+.md-typeset .example > summary {
+  background-color: rgba(255, 203, 92, 0.1);
+}
+
+.md-typeset .warning > .admonition-title,
+.md-typeset .warning > summary,
+.md-typeset .caution > .admonition-title,
+.md-typeset .caution > summary {
+  background-color: rgba(248, 106, 67, 0.12);
+}
+
+.md-typeset .danger > .admonition-title,
+.md-typeset .danger > summary,
+.md-typeset .failure > .admonition-title,
+.md-typeset .failure > summary,
+.md-typeset .bug > .admonition-title,
+.md-typeset .bug > summary {
+  background-color: rgba(177, 56, 72, 0.16);
+}
+
+.md-typeset .quote > .admonition-title,
+.md-typeset .quote > summary {
+  background-color: rgba(86, 56, 99, 0.35);
+}
+
+/* The icon Material draws in the strip is a mask, so it takes its colour from
+   background-color on the ::before - not from `color`. */
+.md-typeset .note > .admonition-title::before,
+.md-typeset .info > .admonition-title::before,
+.md-typeset .tip > .admonition-title::before,
+.md-typeset .abstract > .admonition-title::before,
+.md-typeset .question > .admonition-title::before,
+.md-typeset .success > .admonition-title::before,
+.md-typeset .example > .admonition-title::before {
+  background-color: var(--horizon-amber);
+}
+
+.md-typeset .warning > .admonition-title::before,
+.md-typeset .caution > .admonition-title::before {
+  background-color: var(--horizon-orange);
+}
+
+.md-typeset .danger > .admonition-title::before,
+.md-typeset .failure > .admonition-title::before,
+.md-typeset .bug > .admonition-title::before {
+  background-color: var(--horizon-crimson);
+}

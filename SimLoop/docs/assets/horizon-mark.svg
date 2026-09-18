@@ -1,0 +1,85 @@
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 1200 1200">
+
+    <!--
+      The brand mark on the night ground. Team-specified 2026-08-17: the mark
+      itself is unchanged from the supplied artwork — same ring, same horizon,
+      same scale — and the only addition is the background it sits on. Do not
+      redraw the geometry to suit small sizes; add the ground and nothing else.
+    -->
+
+    <defs>
+
+        <!-- Sun -->
+        <linearGradient id="sunGradient"
+                        x1="0%"
+                        y1="0%"
+                        x2="0%"
+                        y2="100%">
+            <stop offset="0%" stop-color="#FFCB5C"/>
+            <stop offset="32%" stop-color="#FFCB5C"/>
+            <stop offset="66%" stop-color="#F86A43"/>
+            <stop offset="100%" stop-color="#B13848"/>
+        </linearGradient>
+
+        <!-- Horizon -->
+        <linearGradient id="horizonGradient"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="0%">
+            <stop offset="0%" stop-color="#B13848"/>
+            <stop offset="38%" stop-color="#F86A43"/>
+            <stop offset="50%" stop-color="#FF884F"/>
+            <stop offset="62%" stop-color="#F86A43"/>
+            <stop offset="100%" stop-color="#B13848"/>
+        </linearGradient>
+
+        <mask id="sun-mask">
+            <rect width="1200" height="1200" fill="white"/>
+
+            <path
+                d="
+                    M205 778
+                    C355 730 515 705 600 705
+                    C685 705 845 730 995 778
+                    L1200 1200
+                    L0 1200
+                    Z"
+                fill="black"/>
+        </mask>
+
+    </defs>
+
+    <!-- Ground. The mark ships transparent, which on a light tab strip leaves
+         a few stray warm pixels and nothing readable. -->
+    <rect width="1200" height="1200" fill="#17061D"/>
+
+    <!-- Horizon -->
+    <path
+        d="
+            M205 778
+            C355 730 515 705 600 705
+            C685 705 845 730 995 778
+            C865 752 725 738 600 738
+            C475 738 335 752 205 778
+            Z"
+        fill="url(#horizonGradient)"/>
+
+    <!-- Sun -->
+    <path
+        mask="url(#sun-mask)"
+        d="
+            M600 435
+            A155 155 0 1 1 600 745
+            A155 155 0 1 1 600 435
+
+            M600 460
+            A130 130 0 1 0 600 720
+            A130 130 0 1 0 600 460
+            Z"
+        fill="url(#sunGradient)"
+        fill-rule="evenodd"/>
+
+</svg>

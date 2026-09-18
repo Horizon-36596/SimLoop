@@ -131,7 +131,12 @@ dependencies {
     // `Logger.recordOutput(...)`. Publishing it runtime-only would mean every consumer has to re-declare a
     // dependency they cannot avoid, at a version that has to match ours.
     api 'org.psilynx.psikit:core:0.2.0-beta2'
-    api 'org.psilynx.psikit:ftc:0.2.0-beta2'
+
+    // psikit:ftc is deliberately NOT declared. Nothing in this library imports it - checked by grep over
+    // every main and test source, which finds only org.psilynx.psikit.core.* - and it is the FTC-specific
+    // wrapper layer, which is a consumer choice rather than ours. Declaring it as api would have put it on
+    // every consumer compile classpath for no reason, and a dependency a library does not use is one a
+    // consumer cannot get rid of.
 
     // NOTE: deliberately NO season code and NO SolversLib. The dependency direction is one-way: season
     // code depends on this library, and this library never depends on season code. SeparabilityTest
