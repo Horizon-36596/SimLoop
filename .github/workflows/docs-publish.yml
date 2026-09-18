@@ -1,0 +1,95 @@
+# Publishes the documentation site to GitHub Pages when a release tag is pushed.
+#
+# ============================================================================================
+# THIS WORKFLOW ONLY RUNS ON A RELEASE TAG. There is no tag yet, so it has never run. Nothing
+# here needs editing again: the off switch it used to carry was deleted on 2026-09-17, when the
+# repository was made public, so the first `v*` tag is what publishes the site.
+# ============================================================================================
+#
+# What is still outstanding is not in this file. Three settings have to exist before a deployment can
+# succeed, all of them a human's, in a browser, and none of them something a build may do:
+#
+#   1. GitHub Pages enabled for the repository, with "GitHub Actions" as the source:
+#      Settings -> Pages -> Build and deployment -> Source: GitHub Actions.
+#   2. The DNS record. The exact record is written out in SimLoop/PUBLISHING.md under "Hosting the
+#      documentation site" - it is one CNAME and it is not guessed at here.
+#   3. The custom domain entered: Settings -> Pages -> Custom domain -> simloop.horizon36596.org ->
+#      Save. This step is NOT optional and the CNAME file does not replace it. GitHub's docs: "If you
+#      are publishing from a custom GitHub Actions workflow, no CNAME file is created, and any existing
+#      CNAME file is ignored." This is such a workflow, so the Pages setting is what sets the domain.
+#
+# If a tag is cut before those three are done, this job fails at the deploy step and says so, which is
+# the failure you want: loud, at release time, naming the thing that is missing.
+
+name: Publish documentation site
+
+on:
+  push:
+    tags:
+      - 'v*'
+  # Lets a human run it by hand from the Actions tab once it is on, which is how you check a change to
+  # the site without cutting a release for it.
+  workflow_dispatch:
+
+# One deployment at a time, and a newer one waits rather than cancelling: a half-deployed docs site is a
+# site with some pages from one version and some from another.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install the site's build dependencies
+      run: pip install -r SimLoop/docs-requirements.txt
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    # The same one command a person would run. Not a copy of its steps - a copy would drift.
+    #
+    # The steps above this one are deliberately identical to the `docs` job in test.yml. There is no
+    # shared composite action because one would be a third file to understand for six lines of setup;
+    # the cost is that a change to how the site is built has to be made in both places. If they ever
+    # disagree, test.yml is the one that runs on every push, so it is the one that is right.
+    - name: Build the documentation site
+      run: ./gradlew :SimLoop:docsSite
+
+    - name: Package the site for Pages
+      uses: actions/upload-pages-artifact@v5
+      with:
+        path: SimLoop/build/docs/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v5

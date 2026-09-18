@@ -1,0 +1,8 @@
+// SimLoop is one module in a repository that contains only it. That looks redundant and is not:
+// keeping the library as a subproject rather than the root project is what makes the Android Gradle
+// Plugin's library plugin apply to something it expects, and it is what makes the published coordinate
+// `com.github.Horizon-36596.SimLoop:SimLoop` rather than a different one. Both were already true before
+// this repository existed on its own, so nothing a consumer wrote has to change.
+rootProject.name = 'SimLoop'
+
+include ':SimLoop'

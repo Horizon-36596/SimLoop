@@ -1,0 +1,95 @@
+# The documentation site for SimLoop.
+#
+# Lives in SimLoop/ rather than at the repository root because everything a published library needs has
+# to travel with the module when it is split out (SimLoop/CLAUDE.md rule 4) - the LICENCE, PUBLISHING.md
+# and the maven-publish wiring are here for the same reason.
+#
+# Build it with:   python -m mkdocs build -f SimLoop/mkdocs.yml
+# Read it locally: python -m mkdocs serve -f SimLoop/mkdocs.yml
+#
+# One dependency, installed once: pip install mkdocs-material
+site_name: SimLoop
+site_description: >-
+  Run your FTC robot code on a laptop, deterministically, and get a log you can score.
+site_author: Horizon (FTC 36596)
+# The domain the site is served at. The workflow that publishes it is written and complete; the DNS
+# record and the Pages settings are a human's, and the steps are listed at the top of
+# .github/workflows/docs-publish.yml. It is written here rather than left blank because MkDocs uses it
+# for canonical links and the sitemap; if the domain changes, this line and the CNAME are the two places
+# to change.
+site_url: https://simloop.horizon36596.org/
+
+# Rendered as a link in the header of every page.
+repo_url: https://github.com/Horizon-36596/SimLoop
+repo_name: Horizon-36596/SimLoop
+edit_uri: ""
+
+docs_dir: docs
+# Inside the module's own build directory, next to the javadoc, because everything this module produces
+# has to travel with it when it is split out - and because `build/` is already gitignored, so a built
+# site is never committed by accident.
+site_dir: build/docs/site
+
+# The version stamp, shown in the footer of every page so a reader always knows what they are looking at.
+#
+# This is a SECOND place the version is written; `SimLoop/build.gradle` is the authoritative one. They are
+# not linked yet, so PUBLISHING.md's release checklist lists this file as a place to bump. Wiring the two
+# together is a build change and belongs with the rest of the site build.
+copyright: "SimLoop 0.1.0-beta1 · Horizon (FTC 36596) · AGPL-3.0-or-later"
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+
+nav:
+  - Start here:
+      - What SimLoop is: index.md
+      - Installing it: getting-started.md
+      - Your first simulated test: first-test.md
+      - What it does not do: limits.md
+  - Packages:
+      - Overview: packages/index.md
+      - fakehardware: packages/fakehardware.md
+      - plant: packages/plant.md
+      - config: packages/config.md
+      - sim: packages/sim.md
+      - field: packages/field.md
+      - loop: packages/loop.md
+      - viz: packages/viz.md
+  - API reference:
+      - Every class, method and field: javadoc.md
+  - Help:
+      - Troubleshooting: troubleshooting.md
+      - Reporting a bug: support.md
+      - Index for AI agents: llms.md

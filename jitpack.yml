@@ -1,0 +1,13 @@
+# How JitPack builds this repository.
+#
+# JitPack builds a git tag on demand and serves whatever the build installs into the local Maven
+# repository, which is why `publishToMavenLocal` is the whole install step and no credentials are
+# involved anywhere.
+#
+# JDK 17 because the Android Gradle Plugin 8.7 requires it. JitPack's default is older and fails with a
+# Java-version error before any of this project's code is compiled.
+jdk:
+  - openjdk17
+
+install:
+  - ./gradlew :SimLoop:publishToMavenLocal

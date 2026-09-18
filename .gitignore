@@ -1,0 +1,26 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# The Android SDK location, which is per-machine. Never committed: it is an absolute path on whoever
+# generated it, and it is the single most common thing to leak by accident from an Android repository.
+local.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python virtualenvs for the documentation site build
+.venv/
+venv/
+__pycache__/
+
+# The built documentation site and API reference both land under SimLoop/build, which `build/` above
+# already covers. Listed here so nobody adds an exception for them by mistake.

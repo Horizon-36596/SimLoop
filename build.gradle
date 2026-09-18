@@ -1,0 +1,29 @@
+/**
+ * Top-level build file. Everything that matters is in SimLoop/build.gradle; this file exists to put the
+ * Android Gradle Plugin on the buildscript classpath and to give every project the same repositories.
+ *
+ * The AGP version is pinned rather than ranged. SimLoop compiles against the FIRST Tech Challenge SDK,
+ * and the SDK's own app is built with a known AGP; tracking a newer one here buys nothing and can break
+ * a consumer's build for a reason that has nothing to do with this library.
+ */
+
+buildscript {
+    repositories {
+        mavenCentral()
+        google()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.7.0'
+    }
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+        google()
+        // PsiKit is served from here, not from Maven Central. A consumer needs this line too — it is
+        // written out in SimLoop/README.md, because a POM cannot tell a build where to find a
+        // dependency's repository.
+        maven { url "https://repo.dairy.foundation/releases" }
+    }
+}

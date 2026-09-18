@@ -1,0 +1,12 @@
+# The documentation site's build dependencies, pinned so a CI runner and a laptop build the same site.
+#
+# Install with:  pip install -r SimLoop/docs-requirements.txt
+#
+# One direct dependency. mkdocs-material pulls MkDocs itself and everything else it needs; pinning the
+# top of that tree is enough to make the build repeatable, and pinning every transitive would be a
+# maintenance job nobody here is going to do.
+mkdocs-material==9.7.7
+
+# Building the site prints a banner from the Material team warning that MkDocs 2.0 is incompatible and
+# unlicensed. It is about a future upstream release, not about this build: mkdocs-material 9.7.7 itself
+# requires `mkdocs<2`, so pip cannot resolve MkDocs 2.0 into this tree while that pin stands.

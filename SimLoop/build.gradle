@@ -1,0 +1,396 @@
+//
+// build.gradle in SimLoop
+//
+// The season-agnostic, extractable core of the Horizon (FTC 36596) sim/loop tooling
+// (org.horizon36596.simloop). Architecture §3: this module depends ONLY on the
+// FTC SDK hardware interfaces + PsiKit. It must NEVER depend on :TeamCode or SolversLib.
+// Keep this module's CLAUDE.md, README, and tests inside it so it travels on extraction
+// (`git subtree split --prefix=SimLoop`).
+//
+apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+
+// Published coordinates. The release procedure and what each part is for: SimLoop/PUBLISHING.md.
+//
+// The group is the team's rather than FIRST's, because this module is our own code and not a fork of the
+// SDK. JitPack rewrites the group to com.github.<owner>.<repo> for the builds it serves, so this value is
+// what a Maven Central release would use and what `publishToMavenLocal` writes - both are correct at once.
+//
+// org.horizon36596 is the reverse-DNS of a domain the team controls. That matters beyond tidiness: a
+// Maven Central namespace is granted by proving control of the domain the group is named after, so this
+// group is claimable later and a com.github.* one would have to be swapped for one that is.
+group = 'org.horizon36596'
+version = '0.1.0-beta1'
+
+android {
+    namespace = 'org.horizon36596.simloop'
+
+    compileSdk 35
+    defaultConfig {
+        minSdk 24
+    }
+
+    // Publish the release variant only, with sources attached.
+    //
+    // Sources are worth the few seconds they cost: this library is read at least as much as it is called -
+    // the javadoc states units and frame for every number, and a team debugging a plant will want to step
+    // into `Mechanism1DofPlant.update` rather than guess at it.
+    //
+    // A javadoc jar IS published, and Maven Central requires one, but NOT with AGP's `withJavadocJar()`.
+    // That was tried first, on 2026-09-17, and produced a jar that is wrong in two ways at once:
+    //
+    //  1. AGP's javadoc task is not a Gradle `Javadoc` task at all - it is `JavaDocGenerationTask`, which
+    //     runs Dokka's javadoc plugin. So `-Xdoclint` cannot be set on it, and it reports nothing when a
+    //     public symbol has no comment.
+    //  2. That Dokka build predates JDK 16, so it does not understand the inline `{@return ...}` tag this
+    //     module's accessors use. It emits the tag as literal text - the published page for
+    //     `DrivetrainSimConfig.trackWidth()` read `{@return the left-right wheel center-to-center
+    //     distance, in inches}`, braces and all. That is the page a consumer's IDE shows.
+    //
+    // So the javadoc jar is built from the `apiDocs` task at the bottom of this file instead: the real
+    // javadoc tool, doclint on, warnings fatal, and it is the same HTML the documentation site serves.
+    // One javadoc output, not two that can disagree.
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    testOptions {
+        unitTests.all {
+            useJUnitPlatform()
+        }
+    }
+}
+
+// Run the JVM unit tests for the DEBUG variant only. This is a correctness fix, not a speed one, and
+// turning it back on breaks the determinism tests.
+//
+// By default Android gives every build type its own unit-test task, so `./gradlew test` runs
+// `testDebugUnitTest` AND `testReleaseUnitTest` in two separate JVMs. Those two JVMs share one working
+// directory (this module), so the sim tests' RLOG writers both open the SAME files —
+// `SimLoop/build/sim/scenario-runner-test-1.rlog` and friends. PsiKit's RLOGWriter deletes its file and
+// then reopens it in APPEND mode, so the two JVMs either double-append or truncate each other's output,
+// and `ScenarioRunnerTest.sameScenarioTwiceProducesDecodedFieldIdenticalRlogs` fails with garbage that
+// looks exactly like a determinism bug and is not one.
+//
+// The failure this prevents is worth recognising by sight, because it took two separate reports from
+// opposite directions to identify: `:SimLoop:testDebugUnitTest` on its own stays green, while
+// `./gradlew test` — what CI runs — fails intermittently at first and then, once enough RLOG-writing
+// tests exist, every time.
+//
+// Turning the release unit tests off is safe because unit tests are variant-independent: both variants
+// compile the same `src/test/java` against the same dependencies, and no minification is applied to unit
+// tests. There is nothing a release unit test can catch that the debug one cannot.
+androidComponents {
+    beforeVariants(selector().withBuildType('release')) { variantBuilder ->
+        variantBuilder.enableUnitTest = false
+    }
+}
+
+repositories {
+    mavenCentral()
+    google()
+    maven { url "https://repo.dairy.foundation/releases" }
+}
+
+dependencies {
+    // FTC SDK hardware interfaces only (so fake devices can implement the real interfaces).
+    //
+    // KEEP THIS VERSION EQUAL TO the SDK version of any project this module is built alongside. The
+    // version is written out here, in the module, rather than read from a root file, because the module
+    // must build standalone wherever it is checked out.
+    //
+    // A version split is worse here than in most places. A consumer module that depends on this one gets
+    // a merged classpath, on which Gradle quietly promotes these fakes to the newer SDK, while this
+    // module's own test JVM — the one that proves the fakes behave like the hardware — kept compiling
+    // them against the older one. The fakes' whole job is to replicate real device semantics exactly;
+    // two SDK versions backing that claim means the tests proving it and the code relying on it are
+    // looking at different interfaces.
+    // `api`, not `implementation`, because these types are all over this module's PUBLIC surface:
+    // FakeMotor IS a DcMotorEx, FakeHardwareMap IS a HardwareMap, every fake device implements
+    // HardwareDevice. A consumer cannot so much as name the type it got back without the SDK on its
+    // COMPILE classpath, and `implementation` publishes these at runtime scope only. Inside a full FTC
+    // project this never shows, because every module there already declares the SDK for its own reasons;
+    // for a consumer who does not, the first thing they would see is `cannot find symbol: class
+    // DcMotorEx` pointing at our jar.
+    api 'org.firstinspires.ftc:RobotCore:11.2.1'
+    api 'org.firstinspires.ftc:Hardware:11.2.1'
+
+    // PsiKit — logging / replay / IO wrappers. Pinned deliberately: see PUBLISHING.md on why an SDK or
+    // PsiKit version change is a MAJOR bump for this library rather than a tidy-up.
+    //
+    // `api` for a different reason than the SDK: no PsiKit type appears in a signature here (checked -
+    // LogTable occurs once, in a private nested class). But ScenarioRunner's whole contract is stated in
+    // terms of PsiKit's Logger lifecycle, and the first thing anyone writes inside a ScenarioBody is
+    // `Logger.recordOutput(...)`. Publishing it runtime-only would mean every consumer has to re-declare a
+    // dependency they cannot avoid, at a version that has to match ours.
+    api 'org.psilynx.psikit:core:0.2.0-beta2'
+    api 'org.psilynx.psikit:ftc:0.2.0-beta2'
+
+    // NOTE: deliberately NO season code and NO SolversLib. The dependency direction is one-way: season
+    // code depends on this library, and this library never depends on season code. SeparabilityTest
+    // enforces it.
+
+    // JUnit 5 — this module's own tests, which live inside the module and travel with it.
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.11.3"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.11.3"
+    // The JUnit Platform launcher, declared explicitly because Gradle 9 stopped adding it for you.
+    //
+    // This is not a new capability: it is the runner JUnit 5 has always needed, and Gradle 8 injected it
+    // silently onto the test runtime classpath. Gradle 9 removed that injection, so a module whose tests
+    // run fine under Gradle 8.9 (this repo) dies under Gradle 9.1 with "Failed to load JUnit Platform.
+    // Please ensure that all JUnit Platform dependencies are available on the test's runtime classpath,
+    // including the JUnit Platform launcher" — before a single test runs, which reads like a broken module
+    // rather than a build-tool change.
+    //
+    // It is declared HERE, in the module, rather than in whichever project happens to be on Gradle 9,
+    // because this module has to carry what it needs to run wherever it is consumed. Version 1.11.3 is
+    // the platform release that pairs with Jupiter 5.11.3 above; they move together. Found on 2026-09-15,
+    // importing this library into a season project on Gradle 9.1.0.
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.11.3"
+}
+
+// What gets published, and the POM that describes it.
+//
+// `afterEvaluate` is required and is not a style choice: the Android Gradle Plugin creates the
+// `release` software component while it configures the project, so a publication that asks for
+// `components.release` at the top level is evaluated before the component exists and fails with
+// "SoftwareComponent with name 'release' not found".
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+
+                // The javadoc jar, attached by hand because AGP's `withJavadocJar()` would attach Dokka's
+                // instead (see the publishing block at the top of this file). Maven Central requires a
+                // javadoc jar; this is that jar, and it is the same HTML the documentation site serves.
+                artifact tasks.named('apiDocsJar')
+
+                groupId = project.group
+
+                // Matches the Gradle subproject name deliberately. JitPack's multi-module documentation
+                // says the artifact id of a module is the module's own name, so a lowercase artifactId
+                // here would have left the coordinate in the README describing one thing and JitPack
+                // serving another, and no JitPack build has run yet to settle which. Making the two agree
+                // removes the question instead of documenting it. A Maven Central release may want the conventional lowercase form, which
+                // is a coordinate change and therefore a MAJOR bump.
+                artifactId = 'SimLoop'
+                version = project.version
+
+                pom {
+                    name = 'SimLoop'
+                    description = 'Season-agnostic simulation and deterministic-replay core for FTC: ' +
+                            'fake hardware that implements the real SDK interfaces, first-order mechanism ' +
+                            'plants, a fixed-timestep scenario runner, and RLOG scoring.'
+                    url = 'https://github.com/Horizon-36596/SimLoop'
+
+                    licenses {
+                        license {
+                            name = 'GNU Affero General Public License v3.0 or later'
+                            url = 'https://github.com/Horizon-36596/SimLoop/blob/main/SimLoop/LICENSE'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'horizon-36596'
+                            name = 'Horizon (FTC 36596)'
+                            url = 'https://github.com/Horizon-36596'
+                        }
+                    }
+                    scm {
+                        connection = 'scm:git:https://github.com/Horizon-36596/SimLoop.git'
+                        developerConnection = 'scm:git:ssh://git@github.com/Horizon-36596/SimLoop.git'
+                        url = 'https://github.com/Horizon-36596/SimLoop'
+                    }
+                }
+            }
+        }
+
+        // No remote repository is declared here on purpose.
+        //
+        // JitPack builds the tag itself and serves what `publishToMavenLocal` produces, so it needs no
+        // credentials and no repository block - which is most of why it is the route for a beta. A Maven
+        // Central release later adds a `repositories { maven { ... } }` here plus signing; PUBLISHING.md
+        // says what changes. Declaring an empty one now would only be a place for a credential to leak.
+    }
+}
+
+// The strict API reference: one javadoc run that we control, and the only one that can fail.
+//
+// Two javadoc outputs exist and that is deliberate, because they answer to different owners. AGP's
+// `javaDocReleaseJar` (configured in the android block above) produces the `-javadoc.jar` that goes in
+// the POM, and its options belong to AGP - it is not a Gradle `Javadoc` task, so `-Xdoclint` cannot be
+// set on it, and it stays quiet when a public symbol has no comment at all. This task reads exactly the
+// same source files with doclint turned all the way up, so a missing comment, a missing @param or a
+// broken @link is reported here even though the published jar would have swallowed it.
+//
+// That matters more for this library than for most. CLAUDE.md rule 12 requires javadoc on every public
+// class, method and field, stating units and frame for every number, and the documentation site is read
+// by AI agents as well as people - an agent given `setTarget(double)` with no unit will pick one. A
+// javadoc warning here IS that defect, found before a team hits it rather than after.
+//
+// `build/docs/apiDocs` rather than AGP's `build/intermediates/...` path because the site build in L3
+// copies this directory, and nothing outside a build should reach into `intermediates/`.
+tasks.register('apiDocs', Javadoc) {
+    group = 'documentation'
+    description = 'Generates the strict API reference read by the documentation site.'
+
+    source = android.sourceSets.main.java.srcDirs
+    destinationDir = layout.buildDirectory.dir('docs/apiDocs').get().asFile
+
+    // The Android platform jars, plus everything the release variant compiles against - the FTC SDK and
+    // PsiKit. Without both, every `DcMotorEx` in a signature is an unresolved symbol and the real findings
+    // drown in hundreds of "cannot find symbol".
+    //
+    // The artifactView is not decoration and cannot be dropped. The FTC SDK and PsiKit are published as
+    // AARs, an AAR is a zip with the real `classes.jar` inside it, and javadoc can only read a jar. Asking
+    // the configuration for its files directly hands javadoc the .aar files, which it silently cannot open
+    // - the symptom is "package com.qualcomm.robotcore.hardware does not exist" on a dependency that is
+    // plainly declared. This asks Gradle to unpack each AAR and hand over the jar it contains.
+    classpath = files(android.getBootClasspath())
+    classpath += configurations.releaseCompileClasspath.incoming.artifactView {
+        attributes {
+            attribute(org.gradle.api.attributes.Attribute.of('artifactType', String), 'android-classes-jar')
+        }
+    }.files
+    // ...and the RUNTIME classpath as well, which the compile classpath does not contain. Nothing here
+    // needs a runtime-only class to resolve a signature, but javadoc reads the ANNOTATIONS on every
+    // classfile it loads, and the FTC SDK is annotated with Jackson's `@JsonAutoDetect(... Visibility)`.
+    // Jackson is a runtime-scoped transitive, so with the compile classpath alone javadoc prints
+    // `unknown enum constant Visibility.NONE` - one warning, attributed to no file, which `-Werror`
+    // below turns into a failure nobody can locate. Handing it the runtime jars resolves the enum.
+    // This adds no dependency: it is the same graph the module already declares, at a different scope.
+    classpath += configurations.releaseRuntimeClasspath.incoming.artifactView {
+        attributes {
+            attribute(org.gradle.api.attributes.Attribute.of('artifactType', String), 'android-classes-jar')
+        }
+    }.files
+
+    options {
+        encoding = 'UTF-8'
+        charSet = 'UTF-8'
+        docTitle = "SimLoop ${project.version} API"
+        windowTitle = "SimLoop ${project.version} API"
+        // No `links` to the online JDK javadoc on purpose. It would make this task reach the network, so
+        // it would fail or hang on a CI runner without egress and on a student's laptop offline, and the
+        // JDK it redirects to is not the one this library targets anyway.
+    }
+    options.addBooleanOption('Xdoclint:all', true)
+
+    // javadoc stops reporting after 100 warnings by default and says nothing about having stopped, so a
+    // module with 140 missing tags looks exactly like one with 100. Raised so the count printed here is
+    // the real count; it is a reporting limit, not a threshold.
+    options.addStringOption('Xmaxwarns', '2000')
+
+    // Without this the task prints every doclint finding and then SUCCEEDS, because doclint reports a
+    // missing comment as a warning and javadoc still exits 0. A gate that reports and passes is not a
+    // gate - it is a log line nobody reads. `-Werror` is what makes the failure real, and it is the
+    // reason this task can be described as the one that fails.
+    options.addBooleanOption('Werror', true)
+}
+
+// Run the strict reference whenever anyone runs `check` on this module, so a public method added without
+// a comment fails where it is written rather than at release time. `check` rather than `build` because
+// this is a verification, and `check` is the lifecycle task verifications hang off.
+//
+// Note this does NOT put it in CI yet: CI runs `./gradlew test`, which does not depend on `check`. The
+// CI step is L3's, along with the rest of the site build.
+tasks.named('check') {
+    dependsOn 'apiDocs'
+}
+
+// The documentation site: the markdown pages in `docs/`, with the generated API reference dropped inside
+// it at `/javadoc/`, which is the path the site's own "API reference" page links to.
+//
+// ONE COMMAND BUILDS THE WHOLE SITE, and this is it:
+//
+//     ./gradlew :SimLoop:docsSite
+//
+// That matters more than it looks. A site built by a person following steps is built differently every
+// time and nobody else can reproduce it; CI runs this same task on every push, so the site can never
+// become something that only builds on one laptop.
+//
+// It needs Python and MkDocs Material, which Gradle does not manage. From this directory:
+//
+//     pip install -r docs-requirements.txt
+//
+// That is the site's only dependency and it is pinned in that file. (From the repository root, that path
+// is SimLoop/docs-requirements.txt. Paths printed by the tasks below are written relative to this module
+// so that they stay true wherever the module is checked out.)
+//
+// Three tasks rather than one, because each of the three can fail for its own reason and a reader
+// chasing a red build should be told which one it was.
+
+// Fails if the version in mkdocs.yml and the version in this file have drifted apart. They are not
+// linked - `copyright:` in mkdocs.yml is what stamps the footer of every page - and a site claiming one
+// version while the jar beside it is another is worse than a site with no version on it at all. The file
+// is read while this build script is configured, not while the task runs, so the check survives Gradle's
+// configuration cache.
+def mkdocsConfigText = file('mkdocs.yml').text
+def declaredVersion = project.version.toString()
+tasks.register('checkDocsVersion') {
+    group = 'documentation'
+    description = 'Fails if mkdocs.yml stamps a different version than this build does.'
+    doLast {
+        if (!mkdocsConfigText.contains(declaredVersion)) {
+            throw new GradleException("mkdocs.yml never mentions version " + declaredVersion
+                    + ", so every page would stamp the wrong one in its footer. Bump the `copyright:` "
+                    + "line in this module's mkdocs.yml to match `version` in its build.gradle.")
+        }
+    }
+}
+
+// `--strict` turns a broken internal link into a failed build. A documentation site's most common defect
+// is a link that goes nowhere, and it is invisible to everyone except the reader who followed it.
+tasks.register('mkdocsBuild', Exec) {
+    group = 'documentation'
+    description = 'Renders the markdown pages. Needs, in this directory: pip install -r docs-requirements.txt'
+
+    dependsOn 'checkDocsVersion'
+
+    workingDir projectDir
+    commandLine 'python', '-m', 'mkdocs', 'build', '-f', 'mkdocs.yml', '--strict'
+
+    doFirst {
+        logger.lifecycle('Building the documentation site. If this cannot start python, the site needs '
+                + 'one install, run in the SimLoop directory: pip install -r docs-requirements.txt')
+    }
+}
+
+// The generated reference, dropped inside the rendered site. The site's API page links to `/javadoc/`,
+// so this is what makes that link resolve; without it the site builds green and the link 404s.
+tasks.register('docsSite', Copy) {
+    group = 'documentation'
+    description = 'Builds the documentation site, with the API reference inside it.'
+
+    dependsOn 'apiDocs', 'mkdocsBuild'
+
+    from layout.buildDirectory.dir('docs/apiDocs')
+    into layout.buildDirectory.dir('docs/site/javadoc')
+
+    // Resolved here, while the script is configured, so the message below does not reach into the
+    // project from inside a task action - which Gradle's configuration cache forbids.
+    def builtSiteDir = layout.buildDirectory.dir('docs/site').get().asFile
+    doLast {
+        logger.lifecycle('Documentation site built: ' + builtSiteDir)
+        logger.lifecycle('Read it with: python -m mkdocs serve - run from the SimLoop directory.')
+    }
+}
+
+// The javadoc jar that ships in the POM. Built from `apiDocs` rather than from AGP's own javadoc task,
+// for the reasons written out in the `publishing` block at the top of this file.
+tasks.register('apiDocsJar', Jar) {
+    group = 'documentation'
+    description = 'Packages the strict API reference as the release javadoc jar.'
+    archiveClassifier = 'javadoc'
+    from tasks.named('apiDocs')
+}
+
+
