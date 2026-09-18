@@ -19,10 +19,10 @@ not, see <https://www.gnu.org/licenses/>. The full text is in `LICENSE`.
 
 The licence covers SimLoop: the code in this repository that is Horizon's own work.
 
-It does not cover third-party code this library depends on. The FIRST Tech Challenge SDK and SolversLib
-are distributed under their own BSD licences and remain under them; PsiKit and Pedro Pathing likewise
-remain under theirs. Nothing here revokes, narrows or replaces any of those, and where a file carries
-someone else's copyright header, that header governs that file.
+It does not cover third-party code this library depends on. SimLoop depends on three artifacts: the
+FIRST Tech Challenge SDK's `RobotCore` and `Hardware`, distributed under their own BSD licence and
+remaining under it, and PsiKit, which remains under its own. Nothing here revokes, narrows or replaces
+any of those, and where a file carries someone else's copyright header, that header governs that file.
 
 ## What it means for a team, in practice
 

@@ -1,0 +1,74 @@
+//
+// build.gradle in examples
+//
+// This module exists for one reason: so the starter folder cannot rot.
+//
+// `simloop-starter/` is a folder teams copy into their own FTC project. Nothing about it is built by
+// the library, so without this module it would be a directory of Java that nobody compiles - and the
+// first anyone would learn of a renamed method or a changed default is a stranger's build failing.
+// Here, it is compiled and its tests are run by `./gradlew test`, on every push, like everything else.
+//
+// It publishes nothing. `jitpack.yml` installs `:SimLoop:publishToMavenLocal` and only that, so no
+// consumer ever resolves this module or knows it exists.
+//
+// THE TWO SOURCE ROOTS ARE WIRED THE WAY A REAL FTC PROJECT WIRES THEM, and that is the part worth
+// reading. `simloop-starter/robot/` is this module's MAIN sourceset and gets the FTC SDK and nothing
+// else. `simloop-starter/tests/` is its TEST sourceset and is the only one that gets SimLoop. So the
+// example's subsystems physically cannot import the library, which is the claim the example is making:
+// your robot code runs in simulation unchanged because it never learns it is being simulated. A reviewer
+// does not have to take that on trust and a future edit cannot quietly break it - an `import
+// org.horizon36596.simloop.*` in a subsystem fails to compile.
+//
+apply plugin: 'com.android.library'
+
+android {
+    namespace = 'org.firstinspires.ftc.teamcode.simloopexample'
+
+    compileSdk 35
+    defaultConfig {
+        minSdk 24
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    testOptions {
+        unitTests.all {
+            useJUnitPlatform()
+        }
+    }
+
+    // `=` rather than `+=`: this module has no sources of its own and never should. Everything it
+    // compiles lives in the folder a team copies, so there is no second copy to drift from it.
+    sourceSets {
+        main.java.srcDirs = ["$rootDir/simloop-starter/robot"]
+        test.java.srcDirs = ["$rootDir/simloop-starter/tests"]
+    }
+}
+
+// Debug unit tests only. Same reason as SimLoop's own module, written out there: two unit-test JVMs in
+// one working directory both write this module's build/sim/*.rlog, and the determinism failure that
+// produces looks nothing like its cause.
+androidComponents {
+    beforeVariants(selector().withBuildType('release')) { variantBuilder ->
+        variantBuilder.enableUnitTest = false
+    }
+}
+
+dependencies {
+    // MAIN gets the SDK, exactly as TeamCode does. Not SimLoop - see the header.
+    implementation 'org.firstinspires.ftc:RobotCore:11.2.1'
+    implementation 'org.firstinspires.ftc:Hardware:11.2.1'
+
+    // TEST gets SimLoop, exactly as a consumer's `testImplementation` line does. The project dependency
+    // stands in for the JitPack coordinate a real team writes; it is the same code either way, and using
+    // the project here means a change to the library is checked against the example in the same build
+    // rather than after a release.
+    testImplementation project(':SimLoop')
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.11.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.11.3'
+}

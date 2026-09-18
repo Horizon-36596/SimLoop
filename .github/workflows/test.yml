@@ -26,6 +26,10 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    # `test`, not `:SimLoop:test`, and that matters more than it looks. It also runs `:examples:test`,
+    # which compiles `simloop-starter/` - the folder teams copy into their own project - and runs its two
+    # tests. Without that, the one piece of this repository a stranger actually pastes into their build
+    # would be the only piece nobody compiles, and a renamed method would be found by them and not by us.
     - name: Run tests with Gradle
       run: ./gradlew test
 
@@ -50,9 +54,9 @@ jobs:
   # made there too. This job runs on every push, so if the two ever disagree, this one is the right one.
   #
   # The `SimLoop/` and `:SimLoop:` prefixes below are correct and are meant to stay. The library is a
-  # Gradle subproject of a repository that contains only it, which reads as redundant and is not: the
-  # reasons are in settings.gradle, and the short version is that it keeps the published coordinate and
-  # the Android Gradle Plugin layout identical to what consumers already depend on.
+  # Gradle subproject rather than the root project, which reads as redundant and is not: the reasons are
+  # in settings.gradle, and the short version is that it keeps the published coordinate and the Android
+  # Gradle Plugin layout identical to what consumers already depend on.
   docs:
     runs-on: ubuntu-latest
     permissions:

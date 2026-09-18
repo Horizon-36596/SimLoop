@@ -1,8 +1,13 @@
-// SimLoop is one module in a repository that contains only it. That looks redundant and is not:
-// keeping the library as a subproject rather than the root project is what makes the Android Gradle
-// Plugin's library plugin apply to something it expects, and it is what makes the published coordinate
+// SimLoop is the only module in this repository that is published. Keeping it a subproject rather
+// than the root project looks redundant and is not: it is what makes the Android Gradle Plugin's
+// library plugin apply to something it expects, and it is what makes the published coordinate
 // `com.github.Horizon-36596.SimLoop:SimLoop` rather than a different one. Both were already true before
 // this repository existed on its own, so nothing a consumer wrote has to change.
 rootProject.name = 'SimLoop'
 
 include ':SimLoop'
+
+// The example robot, in `simloop-starter/`. It is a folder teams copy into their own project, and this
+// module is what compiles it and runs its tests so it cannot rot - see examples/build.gradle. It is
+// never published: jitpack.yml installs `:SimLoop:publishToMavenLocal` and nothing else.
+include ':examples'

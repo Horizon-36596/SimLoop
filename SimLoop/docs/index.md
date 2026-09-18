@@ -14,6 +14,19 @@ No robot, no Driver Station, no emulator. A test run is a few seconds.
     **the install coordinate on the next page does not resolve for anybody yet**. That page says plainly
     which parts are verified and which are written ahead of the release that makes them true.
 
+## The fastest way in
+
+Copy one folder into your FTC project and add one line to `TeamCode/build.gradle`:
+
+```groovy
+apply from: "$rootDir/simloop-starter/simloop.gradle"
+```
+
+That folder carries every build setting SimLoop needs and a small example robot that drives itself, so
+`./gradlew :TeamCode:testDebugUnitTest` passes two simulated tests immediately. You never clone this
+repository. [Installing it](getting-started.md) has the three steps, and then says exactly what the
+folder is doing if you would rather wire it by hand.
+
 ## Who this is for
 
 Two readers, and the site is shaped for both.

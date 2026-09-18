@@ -185,5 +185,6 @@ term is triggered by *distributing*, not by using. If you publish your robot cod
 to anyone outside your team, then what you hand over has to be AGPL-3.0 too and its source has to be
 available. If your season repository is private and stays that way, nothing is asked of you.
 
-The dependencies keep their own licences. The FIRST Tech Challenge SDK and SolversLib are BSD;
-PsiKit and Pedro Pathing carry theirs. This licence covers SimLoop's own code and nothing else.
+The dependencies keep their own licences, and there are three of them: the FIRST Tech Challenge SDK's
+`RobotCore` and `Hardware`, which are BSD, and PsiKit, which carries its own. This licence covers
+SimLoop's own code and nothing else.

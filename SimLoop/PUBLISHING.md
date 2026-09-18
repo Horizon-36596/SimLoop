@@ -251,7 +251,7 @@ file assumes.
   restrictive licence that still lets another team actually use the library: they may run and modify it
   freely, and the copyleft only bites when they *distribute* — at which point what they distribute must
   be AGPL-3.0 with source available. A team whose season repository is private owes nothing.
-  Vendored and depended-on third-party code keeps its own licence; the SDK and SolversLib stay BSD.
+  Depended-on third-party code keeps its own licence; the SDK's `RobotCore` and `Hardware` stay BSD.
 - **A person cuts a release, and that person is the repository owner.** The release *is* the tag: pushing
   `v<version>` is what declares a commit usable, and everything downstream reacts to it. No workflow
   creates a tag. This is the same rule root `CLAUDE.md` applies to push, PR and merge — the act that
